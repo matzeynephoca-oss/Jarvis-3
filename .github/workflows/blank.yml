@@ -1,0 +1,48 @@
+name: Jarvis2 APK Build
+
+on:
+workflow_dispatch:
+push:
+branches: [main]
+
+jobs:
+build:
+runs-on: ubuntu-latest
+
+```
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v4
+
+  - name: Install Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
+
+  - name: Extract project ZIP
+    run: |
+      unzip -q Jarvis2_buildable.zip -d project
+      echo "ZIP extracted"
+      find project -maxdepth 4 -type f | head -80
+
+  - name: Build APK
+    run: |
+      GRADLEW=$(find project -type f -name gradlew -print -quit)
+      if [ -z "$GRADLEW" ]; then
+        echo "Android Gradle project bulunamadi."
+        echo "ZIP icerigini kontrol etmemiz gerekiyor."
+        exit 1
+      fi
+      PROJECT_DIR=$(dirname "$GRADLEW")
+      chmod +x "$GRADLEW"
+      cd "$PROJECT_DIR"
+      ./gradlew assembleDebug
+
+  - name: Upload APK
+    uses: actions/upload-artifact@v4
+    with:
+      name: Jarvis2-APK
+      path: project/**/build/outputs/apk/debug/*.apk
+      if-no-files-found: error
+```
