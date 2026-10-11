@@ -1,9 +1,10 @@
 name: Jarvis2 APK Build
 
-on:
+'on':
 workflow_dispatch:
 push:
-branches: [main]
+branches:
+- main
 
 jobs:
 build:
@@ -19,18 +20,21 @@ uses: actions/checkout@v4
       distribution: temurin
       java-version: '17'
 
+  - name: Check ZIP exists
+    run: |
+      ls -la
+      test -f Jarvis2_buildable.zip
+
   - name: Extract project ZIP
     run: |
       unzip -q Jarvis2_buildable.zip -d project
-      echo "ZIP extracted"
-      find project -maxdepth 4 -type f | head -80
+      find project -maxdepth 5 -type f | head -80
 
   - name: Build APK
     run: |
       GRADLEW=$(find project -type f -name gradlew -print -quit)
       if [ -z "$GRADLEW" ]; then
-        echo "Android Gradle project bulunamadi."
-        find project -maxdepth 4 -type f | head -80
+        echo "gradlew bulunamadi. ZIP icerigini kontrol et."
         exit 1
       fi
       PROJECT_DIR=$(dirname "$GRADLEW")
@@ -45,3 +49,4 @@ uses: actions/checkout@v4
       path: project/**/build/outputs/apk/debug/*.apk
       if-no-files-found: error
 ```
+
